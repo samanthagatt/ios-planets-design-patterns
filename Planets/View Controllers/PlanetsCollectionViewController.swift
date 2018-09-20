@@ -10,7 +10,13 @@ import UIKit
 
 class PlanetsCollectionViewController: UICollectionViewController, UIPopoverPresentationControllerDelegate {
     
-    @IBAction func unwindToPlanetsCollectionViewController(_ sender: UIStoryboardSegue) {
+    @IBAction func unwindToPlanetsCollectionViewController(_ sender: UIStoryboardSegue) { }
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        
+        let nc = NotificationCenter.default
+        nc.addObserver(self, selector: #selector(shouldShowPlutoChanged(_:)), name: .shouldShowPlutoChanged, object: nil)
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -18,16 +24,23 @@ class PlanetsCollectionViewController: UICollectionViewController, UIPopoverPres
         collectionView?.reloadData()
     }
     
+    // MARK: - Notifications
+    
+    @objc func shouldShowPlutoChanged(_ notification: Notification) {
+        collectionView?.reloadData()
+    }
+    
+    
     // MARK: UICollectionViewDataSource
     
     override func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return planets.count
+        return planetController.planets.count
     }
     
     override func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "PlanetCell", for: indexPath) as! PlanetCollectionViewCell
         
-        let planet = planets[indexPath.item]
+        let planet = planetController.planets[indexPath.item]
         cell.imageView.image = planet.image
         cell.textLabel.text = planet.name
         
@@ -59,17 +72,12 @@ class PlanetsCollectionViewController: UICollectionViewController, UIPopoverPres
         if segue.identifier == "ShowPlanetDetail" {
             guard let indexPath = collectionView?.indexPathsForSelectedItems?.first else { return }
             let detailVC = segue.destination as! PlanetDetailViewController
-            detailVC.planet = planets[indexPath.row]
+            detailVC.planet = planetController.planets[indexPath.row]
         }
     }
     
     // MARK: - Properties
     
     let planetController = PlanetController()
-    
-    var planets: [Planet] {
-        let shouldShowPluto = UserDefaults.standard.bool(forKey: .shouldShowPlutoKey)
-        return shouldShowPluto ? planetController.planetsWithPluto : planetController.planetsWithoutPluto
-    }
     
 }
